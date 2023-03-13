@@ -1,0 +1,162 @@
+MCM-PDU-Descriptions {
+-- itu-t (0) identified-organization (4) etsi (0) itsDomain (5) wg1 (1) en (302637) mcm (1) version (2)
+}
+
+DEFINITIONS AUTOMATIC TAGS ::=
+
+BEGIN
+
+IMPORTS
+ItsPduHeader, StationID, ReferencePosition, Heading, LanePosition FROM ITS-Container {
+itu-t (0) identified-organization (4) etsi (0) itsDomain (5) wg1 (1) ts (102894) cdd (2) version (2)
+};
+
+
+-- ASN.1 of MCM Format
+
+MCM ::= SEQUENCE {
+    header ItsPduHeader,
+    mcm ManueverCoordination
+}
+
+ManueverCoordination ::= SEQUENCE {
+    generationDeltaTime GenerationDeltaTime,
+    mcmContainer McmContainer
+}
+
+McmContainer ::= CHOICE {
+    vehicleManoeuvreContainer VehicleManoeuvreContainer,
+    manoeuvreAdviceContainer ManoeuvreAdviceContainer
+}
+
+VehicleManoeuvreContainer ::= SEQUENCE {
+    currentPoint McmStartPoint,
+    mcmTrajectories SEQUENCE SIZE(1..16) OF McmTrajectory,
+    automationState McmAutomationState OPTIONAL
+}
+
+McmTrajectory ::= SEQUENCE {
+    trajectoryID INTEGER (0..65535),
+    trajectory Trajectory,
+    categories SEQUENCE SIZE(1..4) OF McmCategory OPTIONAL,
+    cost CooperationCost
+}
+
+McmStartPoint ::= CHOICE {
+    intermediatePointReference IntermediatePointReference,
+    intermediatePointOffroad IntermediatePointOffroad
+}
+
+McmCategory ::= SEQUENCE {
+    type McmCategoryType,
+    objectID StationID OPTIONAL,
+    referencedTrajectoryID INTEGER (0..65535) OPTIONAL
+}
+
+McmCategoryType ::= INTEGER {
+    none(0),
+    emergency(1),
+    cooperationOffer(2),
+    cooperationDecline(3),
+    cooperationAcceptance(4)
+}
+
+McmAutomationState ::= SEQUENCE {
+    longitudinalAutomated BOOLEAN,
+    lateralAutomated BOOLEAN
+}
+
+CooperationCost ::= INTEGER { zero(0), oneThousandth(1) } (-1000..1000)
+
+ManoeuvreAdviceContainer ::= SEQUENCE(SIZE(1..16)) OF Manoeuvre
+
+Manoeuvre ::= SEQUENCE {
+    manoeuvreID INTEGER (0..65535),
+    executantID StationID,
+    executantPosition ReferencePosition,
+    executantHeading Heading,
+    trajectory Trajectory,
+    automationAdvice McmAutomationState OPTIONAL
+}
+
+GenerationDeltaTime ::= INTEGER { oneMilliSec(1) } (0..65535)
+
+-- END
+
+
+-- ASN.1 of Trajectory Format
+
+Trajectory ::= SEQUENCE {
+    intermediatePoints SEQUENCE SIZE(1..10) OF IntermediatePoint,
+    longitudinalPositions SEQUENCE SIZE(1..11) OF Polynom,
+    lateralPositions SEQUENCE SIZE(1..11) OF Polynom,
+    headings SEQUENCE SIZE(1..11) OF Polynom OPTIONAL
+}
+
+IntermediatePoint ::= CHOICE {
+    reference IntermediatePointReference,
+    lane IntermediatePointLane,
+    intersection IntermediatePointIntersection,
+    offroad IntermediatePointOffroad
+}
+
+Polynom ::= SEQUENCE {
+    coefficients SEQUENCE SIZE(1..6) OF PolynomCoefficient,
+    start PolynomStartX,
+    end PolynomEndX,
+    xOffset PolynomXOffset
+}
+
+IntermediatePointReference ::= SEQUENCE {
+    referencePosition ReferencePosition,
+    referenceHeading Heading,
+    lane Lane,
+    timeOfPos TimeOfPos
+}
+
+IntermediatePointLane ::= SEQUENCE {
+    lane Lane,
+    reason Reason,
+    timeOfPos TimeOfPos
+}
+
+IntermediatePointIntersection ::= SEQUENCE {
+    exitLane SEQUENCE {
+        lanePosition LanePosition,
+        laneCount LaneCount
+    },
+    exitHeading Heading,
+    timeOfPosEntry TimeOfPos,   -- time on the trajectory when the intersection will be entered
+    timeOfPosExit TimeOfPos     -- time on the trajectory when the intersection will be leaved
+}
+
+IntermediatePointOffroad ::= SEQUENCE {
+    referencePosition ReferencePosition,
+    referenceHeading Heading,
+    timeOfPos TimeOfPos
+}
+
+Lane ::= SEQUENCE {
+    lanePosition LanePosition,
+    laneCount LaneCount -- total number of lanes at the position
+}
+
+PolynomCoefficient ::= REAL
+PolynomStartX ::= INTEGER (0..2097151)  -- Unit: 0.001 meter or seconds
+PolynomEndX ::= INTEGER (0..2097151)    -- Unit: 0.001 meter or seconds
+PolynomXOffset ::= INTEGER (-8000000..8000000) -- Unit: 0.001 meter or seconds
+
+-- Basic types
+
+LaneCount ::= INTEGER (1..16) -- Number of Lanes
+
+TimeOfPos ::= INTEGER(0..65535) -- Unit: 0.01 seconds
+
+Reason ::= ENUMERATED {
+    none(0),
+    laneOpening(1),
+    laneClosing(2),
+    laneChange(3)
+}
+
+END
