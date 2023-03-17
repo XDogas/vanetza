@@ -18,6 +18,7 @@ namespace aid
  */
 constexpr ItsAid CA = 36;
 constexpr ItsAid DEN = 37;
+constexpr ItsAid MC = 38;
 constexpr ItsAid TLM = 137;
 constexpr ItsAid RLT = 138;
 constexpr ItsAid IVI = 139;
