@@ -7,6 +7,7 @@
 #include <vanetza/asn1/ssem.hpp>
 #include <vanetza/asn1/srem.hpp>
 #include <vanetza/asn1/ivim.hpp>
+#include <vanetza/asn1/mcm.hpp>
 #include <vanetza/asn1/its/TimestampIts.h>
 
 using namespace vanetza;
@@ -68,5 +69,10 @@ TEST(ItsAsn1, create_ssem)
 TEST(ItsAsn1, create_ivim)
 {
     asn1::Ivim ivim;
+}
+
+TEST(ItsAsn1, create_mcm)
+{
+    asn1::Mcm mcm;
 }
 
