@@ -16,6 +16,7 @@ private:
     std::string subject_key_path;
     int validity_days;
     std::string cam_permissions;
+    std::string mcm_permissions;
     std::string denm_permissions;
     bool permit_gn_mgmt = false;
 };

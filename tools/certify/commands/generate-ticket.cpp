@@ -30,6 +30,7 @@ bool GenerateTicketCommand::parse(const std::vector<std::string>& opts)
         ("subject-key", po::value<std::string>(&subject_key_path)->required(), "Private key file to issue the certificate for.")
         ("days", po::value<int>(&validity_days)->default_value(7), "Validity in days.")
         ("cam-permissions", po::value<std::string>(&cam_permissions), "CAM permissions as binary string (e.g. '1111111111111100' to grant all SSPs)")
+        ("mcm-permissions", po::value<std::string>(&mcm_permissions), "MCM permissions as binary string (e.g. '1111111111111100' to grant all SSPs)")
         ("denm-permissions", po::value<std::string>(&denm_permissions), "DENM permissions as binary string (e.g. '000000000000000000000000' to grant no SSPs)")
         ("permit-gn-mgmt", po::bool_switch(&permit_gn_mgmt), "Generated ticket can be used to sign GN-MGMT messages (e.g. beacons).")
     ;
@@ -88,10 +89,15 @@ int GenerateTicketCommand::execute()
     auto time_now = vanetza::Clock::at(boost::posix_time::microsec_clock::universal_time());
 
     auto cam_ssps = vanetza::ByteBuffer({ 1, 0, 0 }); // no special permissions
+    auto mcm_ssps = vanetza::ByteBuffer({ 1, 0, 0, 0 }); // no special permissions
     auto denm_ssps = vanetza::ByteBuffer({ 1, 0, 0, 0 }); // no special permissions
 
     if (cam_permissions.size()) {
         permission_string_to_buffer(cam_permissions, cam_ssps);
+    }
+    
+    if (mcm_permissions.size()) {
+        permission_string_to_buffer(mcm_permissions, mcm_ssps);
     }
 
     if (denm_permissions.size()) {
@@ -106,6 +112,12 @@ int GenerateTicketCommand::execute()
     certificate_ssp_ca.its_aid = IntX(aid::CA);
     certificate_ssp_ca.service_specific_permissions = cam_ssps;
     certificate_ssp.push_back(certificate_ssp_ca);
+    
+    // MC
+    ItsAidSsp certificate_ssp_mc;
+    certificate_ssp_mc.its_aid = IntX(aid::MC);
+    certificate_ssp_mc.service_specific_permissions = mcm_ssps;
+    certificate_ssp.push_back(certificate_ssp_mc);
 
     // see ETSI EN 302 637-3 V1.2.2 (2014-11)
     ItsAidSsp certificate_ssp_den;
