@@ -6,7 +6,7 @@
 #include <vanetza/asn1/its/Heading.h>
 #include <vanetza/asn1/its/ReferencePosition.h>
 #include <vanetza/common/position_fix.hpp>
-#include <vanetza/security/cam_ssp.hpp> // change
+#include <vanetza/security/mcm_ssp.hpp>
 #include <vanetza/units/angle.hpp>
 #include <vanetza/units/length.hpp>
 
